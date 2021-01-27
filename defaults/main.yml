@@ -1,0 +1,7 @@
+---
+
+# default docker network
+DOCKER_NETWORK: '172.17.0.0/16'
+DOCKER_NETWORK_GATEWAY: '172.17.0.1'
+DOCKER_NETWORK_NAME: "bridge"
+DOCKER_NETWORK_DEVICE_NAME: docker0
