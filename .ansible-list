@@ -1,0 +1,9 @@
+---
+
+skip_list:
+  - '403'
+  - '503'
+
+# [403] Package installs should not use latest
+# [503] Tasks that run when changed should likely be handlers
+
