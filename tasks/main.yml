@@ -63,11 +63,12 @@
 - name: docker | create docker network
   docker_network:
     name: "{{ DOCKER_NETWORK_NAME }}"
+    appends: true
     #scope: "local"
     driver: 'bridge'
     driver_options: { com.docker.network.bridge.name: "{{ DOCKER_NETWORK_DEVICE_NAME }}" }
     ipam_config:
-      - subnet: "{{ DOCKER_NETWORK }}"
+      - subnet: "{{ DOCKER_NETWORK_SUBNET }}"
         gateway: "{{ DOCKER_NETWORK_GATEWAY }}"
         iprange: "{{ DOCKER_NETWORK_IPRANGE | default(omit) }}"
         aux_addresses: "{{ DOCKER_NETWORK_AUX_ADDRESSES | default(omit) }}"
@@ -75,7 +76,7 @@
         #  host2: 172.3.27.4    
     state: present
     #force: yes
-  when: DOCKER_NETWORK > ''
+  when: DOCKER_NETWORKS | length > 0
   tags:
     - docker
     - docker_network
