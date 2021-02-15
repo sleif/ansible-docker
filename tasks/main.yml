@@ -11,7 +11,7 @@
     - docker
     - geerlingguy_docker
 
-- name: pip install docker module on CentOS
+- name: pip install docker module
   pip:
     name:
       - docker
@@ -46,8 +46,8 @@
   loop: "{{ _docker_service_modify_status.results }}"
   register: _docker_service_modified
   when:
-    - item.msg | length == 0
     - ansible_os_family == "RedHat"
+    - item.msg | length == 0
   tags:
     - docker
     - docker_systemd
@@ -80,3 +80,27 @@
   tags:
     - docker
     - docker_network
+
+- name: collect facts about system services
+  service_facts:
+  register: services_state
+
+- name: Debug
+  debug:
+    var: services_state.ansible_facts.services['firewalld.service'].state
+  when:
+    - services_state.ansible_facts.services['firewalld.service'].state is defined
+    - services_state.ansible_facts.services['firewalld.service'].state == "running"
+    - ansible_os_family == "RedHat"
+
+- name: docker | add network interface docker0 to trusted networks
+  firewalld:
+    zone: trusted
+    interface: docker0
+    immediate: yes
+    permanent: yes
+    state: enabled
+  when:
+    - services_state.ansible_facts.services['firewalld.service'].state is defined
+    - services_state.ansible_facts.services['firewalld.service'].state == "running"
+    - ansible_os_family == "RedHat"
