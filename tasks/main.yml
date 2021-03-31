@@ -2,7 +2,7 @@
 
 # ansible-galaxy role install geerlingguy.docker --force
 - name: "include_role geerlingguy.docker"
-  include_role:
+  ansible.builtin.include_role:
     name: geerlingguy.docker
   vars:
     docker_edition: 'ce'
@@ -12,14 +12,14 @@
     - geerlingguy_docker
 
 - name: pip install docker module
-  pip:
+  ansible.builtin.pip:
     name:
       - docker
     state: latest
 
 # TODO: auto detect unit file to support different OS (sample /lib/systemd/system/docker.service on Ubuntu)
 - name: ensure docker only starts after successfull mounted network fs - check the unit file
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: /usr/lib/systemd/system/docker.service
     backrefs: True
     line: "{{ item.line }}"
@@ -37,7 +37,7 @@
     - docker_systemd
 
 - name: ensure docker only starts after successfull mounted network fs -  modify the unit file
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: "{{ item.invocation.module_args.dest }}"
     backrefs: True
     line: "{{ item.item.line }}"
@@ -53,7 +53,7 @@
     - docker_systemd
 
 - name: reload systemd configuration
-  systemd:
+  ansible.builtin.systemd:
     daemon_reload: yes
   when: _docker_service_modified.changed | bool
   tags:
@@ -61,7 +61,7 @@
     - docker_systemd
 
 - name: docker | create docker network
-  docker_network:
+  community.general.docker_network:
     name: "{{ DOCKER_NETWORK_NAME }}"
     appends: true
     #scope: "local"
@@ -73,7 +73,7 @@
         iprange: "{{ DOCKER_NETWORK_IPRANGE | default(omit) }}"
         aux_addresses: "{{ DOCKER_NETWORK_AUX_ADDRESSES | default(omit) }}"
         #  host1: 172.3.27.3
-        #  host2: 172.3.27.4    
+        #  host2: 172.3.27.4
     state: present
     #force: yes
   when: DOCKER_NETWORKS | length > 0
@@ -82,11 +82,11 @@
     - docker_network
 
 - name: collect facts about system services
-  service_facts:
+  ansible.builtin.service_facts:
   register: services_state
 
 - name: Debug
-  debug:
+  ansible.builtin.debug:
     var: services_state.ansible_facts.services['firewalld.service'].state
   when:
     - services_state.ansible_facts.services['firewalld.service'].state is defined
@@ -94,7 +94,7 @@
     - ansible_os_family == "RedHat"
 
 - name: docker | add network interface docker0 to trusted networks
-  firewalld:
+  ansible.posix.firewalld:
     zone: trusted
     interface: docker0
     immediate: yes
