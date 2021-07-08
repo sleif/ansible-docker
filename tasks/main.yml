@@ -87,26 +87,26 @@
     - docker
     - docker_network
 
-- name: collect facts about system services
-  ansible.builtin.service_facts:
-  register: services_state
+# - name: "collect facts about system services (firewalld)"
+#   ansible.builtin.service_facts:
+#   register: services_state
 
-- name: Debug
-  ansible.builtin.debug:
-    var: services_state.ansible_facts.services['firewalld.service'].state
-  when:
-    - services_state.ansible_facts.services['firewalld.service'].state is defined
-    - services_state.ansible_facts.services['firewalld.service'].state == "running"
-    - ansible_os_family == "RedHat"
+# - name: Debug
+#   ansible.builtin.debug:
+#     var: services_state.ansible_facts.services['firewalld.service'].state
+#   when:
+#     - services_state.ansible_facts.services['firewalld.service'].state is defined
+#     - services_state.ansible_facts.services['firewalld.service'].state == "running"
+#     - ansible_os_family == "RedHat"
 
-- name: docker | add network interface docker0 to trusted networks
-  ansible.posix.firewalld:
-    zone: trusted
-    interface: docker0
-    immediate: yes
-    permanent: yes
-    state: enabled
-  when:
-    - services_state.ansible_facts.services['firewalld.service'].state is defined
-    - services_state.ansible_facts.services['firewalld.service'].state == "running"
-    - ansible_os_family == "RedHat"
+# - name: docker | add network interface docker0 to trusted networks
+#   ansible.posix.firewalld:
+#     zone: trusted
+#     interface: docker0
+#     immediate: yes
+#     permanent: yes
+#     state: enabled
+#   when:
+#     - services_state.ansible_facts.services['firewalld.service'].state is defined
+#     - services_state.ansible_facts.services['firewalld.service'].state == "running"
+#     - ansible_os_family == "RedHat"
