@@ -4,6 +4,7 @@
 - name: "include_role geerlingguy.docker"
   ansible.builtin.include_role:
     name: geerlingguy.docker
+  when: ansible_architecture != 'armv7l'
   vars:
     docker_edition: 'ce'
     docker_users: []
@@ -11,12 +12,15 @@
     - docker
     - geerlingguy_docker
 
-# - name: "include_role geerlingguy.pip"
-#   ansible.builtin.include_role:
-#     name: geerlingguy.pip
-#   vars:
-#     pip_install_packages:
-#       - name: docker
+- name: "include_role geerlingguy.docker_arm"
+  ansible.builtin.include_role:
+    name: geerlingguy.docker_arm
+  when: ansible_architecture == 'armv7l'
+  vars:
+    docker_users: []
+  tags:
+    - docker
+    - geerlingguy_docker
 
 - name: pip install docker module
   ansible.builtin.pip:
