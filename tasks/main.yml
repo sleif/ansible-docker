@@ -45,40 +45,6 @@
       Requires=docker.socket containerd.service remote-fs.target
   register: _place_override_file
 
-# - name: ensure docker only starts after successfull mounted network fs - check the unit file
-#   ansible.builtin.lineinfile:
-#     dest: /usr/lib/systemd/system/docker.service
-#     backrefs: True
-#     line: "{{ item.line }}"
-#     regexp: "{{ item.regexp + item.regexp2 }}"
-#   check_mode: true
-#   loop:
-#     - { line: '\1 remote-fs.target', regexp: '^(Requires=.*)', regexp2: '(\bremote\-fs\.target\b)' }
-#     - { line: '\1 remote-fs.target', regexp: '^(After=.*)', regexp2: '(\bremote\-fs\.target\b)' }
-#   register: _docker_service_modify_status
-#   changed_when: false
-#   when:
-#     - ansible_os_family == "RedHat"
-#   tags:
-#     - docker
-#     - docker_systemd
-
-# - name: ensure docker only starts after successfull mounted network fs -  modify the unit file
-#   ansible.builtin.lineinfile:
-#     dest: "{{ item.invocation.module_args.dest }}"
-#     backrefs: True
-#     line: "{{ item.item.line }}"
-#     regexp: "{{ item.item.regexp }}"
-#   check_mode: false
-#   loop: "{{ _docker_service_modify_status.results }}"
-#   register: _docker_service_modified
-#   when:
-#     - ansible_os_family == "RedHat"
-#     - item.msg | length == 0
-#   tags:
-#     - docker
-#     - docker_systemd
-
 - name: reload systemd configuration
   ansible.builtin.systemd:
     daemon_reload: yes
