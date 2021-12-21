@@ -11,58 +11,74 @@
     - docker
     - geerlingguy_docker
 
-- name: "include_role geerlingguy.pip"
-  ansible.builtin.include_role:
-    name: geerlingguy.pip
-  vars:
-    pip_install_packages:
-      - name: docker
+# - name: "include_role geerlingguy.pip"
+#   ansible.builtin.include_role:
+#     name: geerlingguy.pip
+#   vars:
+#     pip_install_packages:
+#       - name: docker
 
-# - name: pip install docker module
-#   ansible.builtin.pip:
-#     name:
-#       - docker
-#     state: latest
+- name: pip install docker module
+  ansible.builtin.pip:
+    name:
+      - docker
+    state: latest
 
 # TODO: auto detect unit file to support different OS (sample /lib/systemd/system/docker.service on Ubuntu)
-- name: ensure docker only starts after successfull mounted network fs - check the unit file
-  ansible.builtin.lineinfile:
-    dest: /usr/lib/systemd/system/docker.service
-    backrefs: True
-    line: "{{ item.line }}"
-    regexp: "{{ item.regexp + item.regexp2 }}"
-  check_mode: true
-  loop:
-    - { line: '\1 remote-fs.target', regexp: '^(Requires=.*)', regexp2: '(\bremote\-fs\.target\b)' }
-    - { line: '\1 remote-fs.target', regexp: '^(After=.*)', regexp2: '(\bremote\-fs\.target\b)' }
-  register: _docker_service_modify_status
-  changed_when: false
-  when:
-    - ansible_os_family == "RedHat"
-  tags:
-    - docker
-    - docker_systemd
+- name: "create directory for systemd override for docker.service"
+  file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+    mode: 0775
+    owner: root
 
-- name: ensure docker only starts after successfull mounted network fs -  modify the unit file
-  ansible.builtin.lineinfile:
-    dest: "{{ item.invocation.module_args.dest }}"
-    backrefs: True
-    line: "{{ item.item.line }}"
-    regexp: "{{ item.item.regexp }}"
-  check_mode: false
-  loop: "{{ _docker_service_modify_status.results }}"
-  register: _docker_service_modified
-  when:
-    - ansible_os_family == "RedHat"
-    - item.msg | length == 0
-  tags:
-    - docker
-    - docker_systemd
+- name: "place systemd override for docker.service"
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/docker.service.d/override.conf
+    content: |
+      [Unit]
+      After=network-online.target firewalld.service containerd.service remote-fs.target
+      Requires=docker.socket containerd.service remote-fs.target
+  register: _place_override_file
+
+# - name: ensure docker only starts after successfull mounted network fs - check the unit file
+#   ansible.builtin.lineinfile:
+#     dest: /usr/lib/systemd/system/docker.service
+#     backrefs: True
+#     line: "{{ item.line }}"
+#     regexp: "{{ item.regexp + item.regexp2 }}"
+#   check_mode: true
+#   loop:
+#     - { line: '\1 remote-fs.target', regexp: '^(Requires=.*)', regexp2: '(\bremote\-fs\.target\b)' }
+#     - { line: '\1 remote-fs.target', regexp: '^(After=.*)', regexp2: '(\bremote\-fs\.target\b)' }
+#   register: _docker_service_modify_status
+#   changed_when: false
+#   when:
+#     - ansible_os_family == "RedHat"
+#   tags:
+#     - docker
+#     - docker_systemd
+
+# - name: ensure docker only starts after successfull mounted network fs -  modify the unit file
+#   ansible.builtin.lineinfile:
+#     dest: "{{ item.invocation.module_args.dest }}"
+#     backrefs: True
+#     line: "{{ item.item.line }}"
+#     regexp: "{{ item.item.regexp }}"
+#   check_mode: false
+#   loop: "{{ _docker_service_modify_status.results }}"
+#   register: _docker_service_modified
+#   when:
+#     - ansible_os_family == "RedHat"
+#     - item.msg | length == 0
+#   tags:
+#     - docker
+#     - docker_systemd
 
 - name: reload systemd configuration
   ansible.builtin.systemd:
     daemon_reload: yes
-  when: _docker_service_modified.changed | bool
+  when: _place_override_file.changed | bool
   tags:
     - docker
     - docker_systemd
