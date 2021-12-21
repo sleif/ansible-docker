@@ -11,11 +11,18 @@
     - docker
     - geerlingguy_docker
 
-- name: pip install docker module
-  ansible.builtin.pip:
-    name:
-      - docker
-    state: latest
+- name: "include_role geerlingguy.pip"
+  ansible.builtin.include_role:
+    name: geerlingguy.pip
+  vars:
+    pip_install_packages:
+      - name: docker
+
+# - name: pip install docker module
+#   ansible.builtin.pip:
+#     name:
+#       - docker
+#     state: latest
 
 # TODO: auto detect unit file to support different OS (sample /lib/systemd/system/docker.service on Ubuntu)
 - name: ensure docker only starts after successfull mounted network fs - check the unit file
@@ -75,7 +82,6 @@
         #  host1: 172.3.27.3
         #  host2: 172.3.27.4
     state: present
-    #force: yes
   when: DOCKER_NETWORKS | length > 0
   tags:
     - docker
