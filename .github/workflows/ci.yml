@@ -1,0 +1,43 @@
+---
+name: CI
+'on':
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+  schedule:
+    - cron: "0 4 * * 5"
+
+defaults:
+  run:
+    working-directory: 'sleif.ws'
+
+jobs:
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+        with:
+          path: 'sleif.ws'
+
+      - name: Set up Python 3.
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install test dependencies.
+        run: pip3 install yamllint ansible ansible-lint
+
+      - name: Yaml lint code.
+        run: |
+          yamllint --version
+          yamllint .
+
+      - name: Ansible lint code.
+        run: |
+          ansible-lint --version
+          ansible-lint .

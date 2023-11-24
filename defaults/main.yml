@@ -1,10 +1,10 @@
 ---
 
 # default docker network
-DOCKER_NETWORK_SUBNET: '172.18.0.0/16'
-DOCKER_NETWORK_GATEWAY: '172.18.0.1'
-DOCKER_NETWORK_NAME: "custom-bridge"
-DOCKER_NETWORK_DEVICE_NAME: br-custom0
+docker_network_subnet: '172.18.0.0/16'
+docker_network_gateway: '172.18.0.1'
+docker_network_name: "custom-bridge"
+docker_network_device_name: br-custom0
 
-DOCKER_NETWORKS:
-  - "{{ DOCKER_NETWORK_NAME }}"
+docker_networks:
+  - "{{ docker_network_name }}"

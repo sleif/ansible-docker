@@ -22,7 +22,7 @@
     - docker
     - geerlingguy_docker
 
-- name: pip install docker module
+- name: pip install docker module  # noqa: package-latest
   ansible.builtin.pip:
     name:
       - docker
@@ -30,10 +30,10 @@
 
 # TODO: auto detect unit file to support different OS (sample /lib/systemd/system/docker.service on Ubuntu)
 - name: "create directory for systemd override for docker.service"
-  file:
+  ansible.builtin.file:
     path: /etc/systemd/system/docker.service.d
     state: directory
-    mode: 0775
+    mode: '0775'
     owner: root
 
 - name: "place systemd override for docker.service"
@@ -43,11 +43,12 @@
       [Unit]
       After=network-online.target firewalld.service containerd.service remote-fs.target
       Requires=docker.socket containerd.service remote-fs.target
+    mode: '0644'
   register: _place_override_file
 
-- name: reload systemd configuration
+- name: reload systemd configuration  # noqa: no-handler
   ansible.builtin.systemd:
-    daemon_reload: yes
+    daemon_reload: true
   when: _place_override_file.changed | bool
   tags:
     - docker
@@ -55,20 +56,20 @@
 
 - name: docker | create docker network
   community.general.docker_network:
-    name: "{{ DOCKER_NETWORK_NAME }}"
+    name: "{{ docker_network_name }}"
     appends: true
-    #scope: "local"
+    # scope: "local"
     driver: 'bridge'
-    driver_options: { com.docker.network.bridge.name: "{{ DOCKER_NETWORK_DEVICE_NAME }}" }
+    driver_options: {com.docker.network.bridge.name: "{{ docker_network_device_name }}"}
     ipam_config:
-      - subnet: "{{ DOCKER_NETWORK_SUBNET }}"
-        gateway: "{{ DOCKER_NETWORK_GATEWAY }}"
-        iprange: "{{ DOCKER_NETWORK_IPRANGE | default(omit) }}"
-        aux_addresses: "{{ DOCKER_NETWORK_AUX_ADDRESSES | default(omit) }}"
+      - subnet: "{{ docker_network_subnet }}"
+        gateway: "{{ docker_network_gateway }}"
+        iprange: "{{ docker_network_iprange | default(omit) }}"
+        aux_addresses: "{{ docker_network_aux_addresses | default(omit) }}"
         #  host1: 172.3.27.3
         #  host2: 172.3.27.4
     state: present
-  when: DOCKER_NETWORKS | length > 0
+  when: docker_networks | length > 0
   tags:
     - docker
     - docker_network
