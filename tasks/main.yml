@@ -22,11 +22,11 @@
     - docker
     - geerlingguy_docker
 
-- name: pip install docker module  # noqa: package-latest
-  ansible.builtin.pip:
-    name:
-      - docker
-    state: latest
+# - name: pip install docker module  # noqa: package-latest
+#   ansible.builtin.pip:
+#     name:
+#       - docker
+#     state: latest
 
 # TODO: auto detect unit file to support different OS (sample /lib/systemd/system/docker.service on Ubuntu)
 - name: "create directory for systemd override for docker.service"
